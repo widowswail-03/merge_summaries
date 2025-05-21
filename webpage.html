@@ -72,6 +72,9 @@
               <div key={item.id} className="bg-white p-4 rounded shadow">
                 <h2 className="text-xl font-semibold">{item.title}</h2>
                 <p className="text-gray-600">{item.summary}</p>
+                {item.conflict_note && (
+                  <p className="text-red-600 text-sm mt-1">{item.conflict_note}</p>
+                )}
                 <div className="flex space-x-2 mt-2">
                   {item.tags.map(tag => (
                     <span key={tag} className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
