@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Research Summary Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const App = () => {
+      const [data, setData] = useState([]);
+      const [filterTag, setFilterTag] = useState("All");
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+
+      // Fetch data from backend
+      useEffect(() => {
+        fetch('reports.json')
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch reports');
+            return response.json();
+          })
+          .then(data => {
+            setData(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            setError(err.message);
+            setLoading(false);
+          });
+      }, []);
+
+      // Extract unique tags for filter
+      const tags = ["All", ...new Set(data.flatMap(item => item.tags))];
+
+      // Filter data based on selected tag
+      const filteredData = filterTag === "All" 
+        ? data 
+        : data.filter(item => item.tags.includes(filterTag));
+
+      if (loading) return <div className="container mx-auto p-4">Loading...</div>;
+      if (error) return <div className="container mx-auto p-4 text-red-600">Error: {error}</div>;
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-3xl font-bold mb-4">Daily Research Summary</h1>
+          
+          {/* Tag Filter */}
+          <div className="mb-4">
+            <label className="mr-2 font-semibold">Filter by Tag:</label>
+            <select 
+              className="p-2 border rounded"
+              value={filterTag}
+              onChange={(e) => setFilterTag(e.target.value)}
+            >
+              {tags.map(tag => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* News Items */}
+          <div className="space-y-4">
+            {filteredData.map(item => (
+              <div key={item.id} className="bg-white p-4 rounded shadow">
+                <h2 className="text-xl font-semibold">{item.title}</h2>
+                <p className="text-gray-600">{item.summary}</p>
+                <div className="flex space-x-2 mt-2">
+                  {item.tags.map(tag => (
+                    <span key={tag} className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <h3 className="font-medium">Analyst Insights:</h3>
+                  {item.analysts.map(analyst => (
+                    <p key={analyst.name} className="text-sm text-gray-700">
+                      <strong>{analyst.name}:</strong> {analyst.insight}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
